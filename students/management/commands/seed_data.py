@@ -149,14 +149,14 @@ class Command(BaseCommand):
         opp_data = [
             # Internships
             {
-                'title': 'AI/ML Research Engineering Internship',
+                'title': 'AI/ML Research Internship',
                 'organization': 'Apex Neural Labs',
                 'description': 'Work alongside senior research scientists developing cutting-edge foundation models, vision transformers, and multimodal AI pipelines.',
                 'type': 'Internship', 'domain': 'Artificial Intelligence', 'loc': 'Remote', 'mode': 'Online',
-                'dur': '3 Months', 'cgpa': 7.5, 'days': 35, 'url': 'https://example.com/apply/apex-ai',
+                'dur': '3 Months', 'cgpa': 7.0, 'days': 35, 'url': 'https://example.com/apply/apex-ai',
                 'branches': ['CSE', 'IT', 'AI&DS'], 'years': [3, 4, 5],
-                'req_skills': ['Python', 'Machine Learning', 'PyTorch', 'SQL', 'Git'],
-                'interests': ['Artificial Intelligence', 'Machine Learning', 'Data Science'],
+                'req_skills': ['Python', 'Django', 'SQL', 'Git', 'Docker'],
+                'interests': ['Artificial Intelligence', 'Machine Learning'],
             },
             {
                 'title': 'Full-Stack Web Development Internship',
@@ -645,7 +645,7 @@ class Command(BaseCommand):
                 'preferred_type': 'Internship',
                 'preferred_duration': '3-6 Months',
                 'preferred_loc': 'Remote',
-                'availability': 'Immediate',
+                'availability': 'Summer Break',
                 'skills': [
                     ('Python', 'Advanced'),
                     ('Django', 'Intermediate'),

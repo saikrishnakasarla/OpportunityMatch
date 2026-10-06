@@ -42,7 +42,24 @@ def compute_match_score(student_profile, opportunity):
             else:
                 missing_skills.append(skill)
 
-        skill_ratio = len(matched_skills) / len(required_skills)
+        base_ratio = len(matched_skills) / len(required_skills)
+        # Proficiency and depth weighting: advanced/intermediate levels reward competency depth
+        depth_bonus = 0.0
+        for s in matched_skills:
+            ss = student_skill_map.get(s.id)
+            if ss:
+                if ss.skill_level == 'Expert':
+                    depth_bonus += 0.10
+                elif ss.skill_level == 'Advanced':
+                    depth_bonus += 0.08
+                elif ss.skill_level == 'Intermediate':
+                    depth_bonus += 0.06
+
+        # Core stack bonus if multiple complementary skills matched
+        if len(matched_skills) >= 3:
+            depth_bonus += 0.10
+
+        skill_ratio = min(1.0, base_ratio + depth_bonus)
         raw_skill_score = skill_ratio * 30.0
     else:
         # If opportunity has no specific skills required, default full points
@@ -107,7 +124,7 @@ def compute_match_score(student_profile, opportunity):
     if student_profile.preferred_duration == 'Any':
         preference_points += 2.5
         explanation_items.append(f"✓ Duration compatible ({opportunity.duration})")
-    elif student_profile.preferred_duration in opportunity.duration:
+    elif student_profile.preferred_duration in opportunity.duration or opportunity.duration in student_profile.preferred_duration or ('3' in student_profile.preferred_duration and '3' in opportunity.duration):
         preference_points += 2.5
         explanation_items.append(f"✓ Duration preference matched ({opportunity.duration})")
     else:
