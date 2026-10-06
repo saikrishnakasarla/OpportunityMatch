@@ -1,0 +1,311 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard — OpportunityMatch{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+  <!-- Top Welcome Banner -->
+  <div class="card card-custom p-4 p-md-5 mb-4 border-0" style="background: linear-gradient(135deg, var(--primary-navy) 0%, var(--secondary-navy) 100%); color: white;">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-8">
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white bg-opacity-10 text-teal-light mb-2 small fw-semibold">
+          <i class="bi bi-person-badge"></i> {{ profile.college|default:"Student Member" }}
+        </div>
+        <h2 class="fw-bold mb-2">
+          Welcome back, {{ user.first_name|default:user.username }} 👋
+        </h2>
+        <p class="text-white-50 mb-3" style="max-width: 650px;">
+          The system has analyzed your academic profile, verified your eligibility gates, and ranked active opportunities according to your skills and preferences.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{% url 'recommendations:list' %}" class="btn btn-primary-teal btn-sm px-3 py-2">
+            <i class="bi bi-stars text-warning me-1"></i> View All Matches
+          </a>
+          <a href="{% url 'students:profile_edit' %}" class="btn btn-outline-light btn-sm px-3 py-2">
+            <i class="bi bi-sliders me-1"></i> Update Preferences
+          </a>
+          <a href="{% url 'recommendations:recalculate' %}" class="btn btn-navy btn-sm px-3 py-2 border border-secondary">
+            <i class="bi bi-arrow-clockwise me-1"></i> Recalculate Scores
+          </a>
+        </div>
+      </div>
+
+      <!-- Profile Completion Gauge -->
+      <div class="col-lg-4">
+        <div class="bg-white bg-opacity-10 rounded-4 p-3 border border-white border-opacity-10 text-start">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="small text-white-50 fw-semibold text-uppercase" style="font-size: 0.75rem;">Profile Completion</span>
+            <span class="fw-bold text-teal-light">{{ completion_pct }}%</span>
+          </div>
+          <div class="progress mb-2" style="height: 8px; background-color: rgba(255,255,255,0.15);">
+            <div class="progress-bar bg-teal-light" role="progressbar" style="width: {{ completion_pct }}%;" aria-valuenow="{{ completion_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          {% if completion_pct < 100 %}
+            <p class="small text-white-50 mb-0" style="font-size: 0.785rem;">
+              <i class="bi bi-info-circle me-1 text-warning"></i>
+              Add more skills and preferences to maximize matching accuracy.
+            </p>
+          {% else %}
+            <p class="small text-teal-light mb-0" style="font-size: 0.785rem;">
+              <i class="bi bi-check-circle-fill me-1"></i> Profile fully optimized for matching!
+            </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Metrics Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+      <div class="stat-box">
+        <div class="stat-icon-wrapper bg-teal-soft text-teal-primary">
+          <i class="bi bi-stars"></i>
+        </div>
+        <div>
+          <h4 class="fw-bold mb-0 text-navy">{{ top_matches|length }}+</h4>
+          <span class="text-muted small">Top Compatible Matches</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="stat-box">
+        <div class="stat-icon-wrapper bg-primary-subtle text-primary">
+          <i class="bi bi-bookmark-fill"></i>
+        </div>
+        <div>
+          <h4 class="fw-bold mb-0 text-navy">{{ total_saved }}</h4>
+          <span class="text-muted small">Saved Opportunities</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="stat-box">
+        <div class="stat-icon-wrapper bg-success-subtle text-success">
+          <i class="bi bi-send-check-fill"></i>
+        </div>
+        <div>
+          <h4 class="fw-bold mb-0 text-navy">{{ total_applied }}</h4>
+          <span class="text-muted small">Applications Tracked</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="stat-box">
+        <div class="stat-icon-wrapper bg-warning-subtle text-warning">
+          <i class="bi bi-code-slash"></i>
+        </div>
+        <div>
+          <h4 class="fw-bold mb-0 text-navy">{{ profile.student_skills.count }}</h4>
+          <span class="text-muted small">Skills on Profile</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Main Left Column: Top Recommended Matches -->
+    <div class="col-lg-8">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h4 class="fw-bold text-navy mb-0">🔥 Top Recommended Opportunities</h4>
+          <small class="text-muted">Ranked by explainable compatibility score for your profile</small>
+        </div>
+        <a href="{% url 'recommendations:list' %}" class="btn btn-outline-teal btn-sm">View All Matches</a>
+      </div>
+
+      {% if top_matches %}
+        <div class="d-flex flex-column gap-3">
+          {% for match in top_matches %}
+            <div class="card card-custom card-hover-elevate p-4">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-teal-soft text-teal-primary fw-semibold">{{ match.opportunity.opportunity_type }}</span>
+                    <span class="badge bg-light text-secondary border">{{ match.opportunity.mode }}</span>
+                    {% if match.opportunity.is_expired %}
+                      <span class="badge bg-danger">Expired</span>
+                    {% endif %}
+                  </div>
+                  <h5 class="fw-bold mb-1 text-navy">
+                    <a href="{% url 'opportunities:detail' match.opportunity.pk %}" class="text-navy text-decoration-none">
+                      {{ match.opportunity.title }}
+                    </a>
+                  </h5>
+                  <p class="text-muted small mb-0"><i class="bi bi-building me-1"></i> {{ match.opportunity.organization }} &bull; <i class="bi bi-geo-alt me-1"></i> {{ match.opportunity.location }}</p>
+                </div>
+
+                <!-- Match Score Badge -->
+                <div class="badge-match-score {% if match.overall_score >= 90 %}badge-excellent{% elif match.overall_score >= 75 %}badge-strong{% elif match.overall_score >= 60 %}badge-moderate{% elif match.overall_score >= 40 %}badge-low{% else %}badge-poor{% endif %}">
+                  <i class="bi bi-lightning-charge-fill"></i> {{ match.score_int }}% MATCH
+                </div>
+              </div>
+
+              <!-- Explainable Match Summary -->
+              <div class="match-explanation-box my-3">
+                <div class="row g-2 align-items-center">
+                  <div class="col-md-7">
+                    <div class="small fw-semibold text-secondary mb-1">Matched Skills:</div>
+                    <div class="d-flex flex-wrap gap-1">
+                      {% if match.matched_skills_data %}
+                        {% for sk in match.matched_skills_data %}
+                          <span class="skill-tag matched"><i class="bi bi-check me-1"></i>{{ sk }}</span>
+                        {% endfor %}
+                      {% else %}
+                        <span class="text-muted small">No specific prerequisite skills</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-5">
+                    <div class="small fw-semibold text-secondary mb-1">Missing Skills:</div>
+                    <div class="d-flex flex-wrap gap-1">
+                      {% if match.missing_skills_data %}
+                        {% for sk in match.missing_skills_data %}
+                          <span class="skill-tag missing"><i class="bi bi-exclamation-triangle me-1"></i>{{ sk }}</span>
+                        {% endfor %}
+                      {% else %}
+                        <span class="text-success small fw-semibold"><i class="bi bi-check-all me-1"></i>All skills satisfied!</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card Action Bar -->
+              <div class="d-flex justify-content-between align-items-center pt-2 border-top small">
+                <span class="text-muted">
+                  <i class="bi bi-clock-history me-1"></i> Deadline: <strong>{{ match.opportunity.deadline|date:"d M Y" }}</strong>
+                  ({{ match.opportunity.days_remaining }} days left)
+                </span>
+                <div class="d-flex gap-2">
+                  <a href="{% url 'opportunities:save_toggle' match.opportunity.pk %}" class="btn btn-outline-secondary btn-sm">
+                    {% if match.opportunity.pk in saved_ids %}
+                      <i class="bi bi-bookmark-check-fill text-primary"></i> Saved
+                    {% else %}
+                      <i class="bi bi-bookmark"></i> Save
+                    {% endif %}
+                  </a>
+                  <a href="{% url 'opportunities:detail' match.opportunity.pk %}" class="btn btn-primary-teal btn-sm">
+                    View Details & Why
+                  </a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="card card-custom p-5 text-center">
+          <i class="bi bi-search fs-1 text-muted mb-3"></i>
+          <h5>No matches found yet</h5>
+          <p class="text-muted small">Please complete your profile or check your academic eligibility parameters.</p>
+          <a href="{% url 'recommendations:recalculate' %}" class="btn btn-primary-teal btn-sm mx-auto">Recalculate Matches</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Right Sidebar Column -->
+    <div class="col-lg-4">
+      <!-- "What Should I Learn Next?" Card -->
+      <div class="card card-custom p-4 mb-4 border-teal border-opacity-50" style="background: linear-gradient(180deg, #f0fdfa 0%, #ffffff 100%);">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-teal-primary text-white p-1 rounded"><i class="bi bi-lightning-charge-fill"></i></span>
+          <h5 class="fw-bold mb-0 text-navy">What Should I Learn Next?</h5>
+        </div>
+        <p class="small text-muted mb-3">
+          Calculated from missing skills across opportunities where you meet branch and academic eligibility.
+        </p>
+
+        {% if top_recommended_skill %}
+          <div class="p-3 bg-white rounded-3 border border-teal-subtle shadow-sm mb-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <span class="badge bg-warning text-dark small fw-bold mb-1">Top Recommended</span>
+                <h5 class="fw-bold text-navy mb-0">{{ top_recommended_skill.name }}</h5>
+                <small class="text-muted">{{ top_recommended_skill.category }}</small>
+              </div>
+              <span class="badge bg-teal-soft text-teal-primary fs-6">{{ top_recommended_skill.frequency }} opps</span>
+            </div>
+            <p class="small text-secondary mt-2 mb-0">
+              Adding this skill would improve your profile's compatibility score across <strong>{{ top_recommended_skill.frequency }}</strong> active opportunities.
+            </p>
+          </div>
+
+          {% if recommended_skills|length > 1 %}
+            <div class="small fw-semibold text-secondary mb-2">Other High-Impact Skills:</div>
+            <div class="d-flex flex-column gap-2">
+              {% for sk in recommended_skills|slice:"1:4" %}
+                <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded-2 border">
+                  <span class="small fw-bold text-dark">{{ sk.name }}</span>
+                  <span class="badge bg-secondary-subtle text-secondary small">{{ sk.frequency }} opportunities</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% else %}
+          <p class="small text-muted mb-0">Your profile covers all current opportunity requirements!</p>
+        {% endif %}
+
+        <div class="mt-3 text-center">
+          <a href="{% url 'students:skill_gaps' %}" class="btn btn-outline-teal btn-sm w-100">
+            Full Skill Gap Analysis &rarr;
+          </a>
+        </div>
+      </div>
+
+      <!-- Upcoming Deadlines Card -->
+      <div class="card card-custom p-4 mb-4">
+        <h5 class="fw-bold text-navy mb-3"><i class="bi bi-calendar-event me-2 text-danger"></i> Upcoming Deadlines</h5>
+        {% if upcoming_deadlines %}
+          <div class="d-flex flex-column gap-3">
+            {% for opp in upcoming_deadlines %}
+              <div class="d-flex align-items-start gap-2 pb-2 border-bottom">
+                <div class="bg-danger-subtle text-danger rounded p-2 text-center" style="min-width: 48px;">
+                  <strong class="d-block" style="font-size: 1.1rem; line-height: 1;">{{ opp.deadline|date:"d" }}</strong>
+                  <span style="font-size: 0.65rem; text-transform: uppercase;">{{ opp.deadline|date:"M" }}</span>
+                </div>
+                <div class="flex-grow-1 overflow-hidden">
+                  <a href="{% url 'opportunities:detail' opp.pk %}" class="fw-semibold text-navy text-decoration-none small text-truncate d-block">
+                    {{ opp.title }}
+                  </a>
+                  <span class="text-muted" style="font-size: 0.75rem;">{{ opp.organization }} &bull; {{ opp.days_remaining }} days left</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted small mb-0">No deadlines closing in the next 30 days.</p>
+        {% endif %}
+      </div>
+
+      <!-- Quick Profile Card -->
+      <div class="card card-custom p-4">
+        <h6 class="fw-bold text-navy mb-3">Academic Eligibility Profile</h6>
+        <div class="small d-flex flex-column gap-2 text-secondary">
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Branch:</span>
+            <strong>{{ profile.branch.name|default:"Not specified" }}</strong>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Year:</span>
+            <strong>{{ profile.year.name|default:"Not specified" }}</strong>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">CGPA:</span>
+            <strong>{{ profile.cgpa }} / 10</strong>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Preferred Mode:</span>
+            <strong>{{ profile.preferred_mode }}</strong>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Availability:</span>
+            <strong>{{ profile.availability }}</strong>
+          </div>
+        </div>
+        <a href="{% url 'students:profile_edit' %}" class="btn btn-outline-secondary btn-sm mt-3">Edit Details</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

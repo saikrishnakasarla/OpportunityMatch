@@ -1,0 +1,247 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}OpportunityMatch — Automated Opportunity & Skill Gap Engine{% endblock %}</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 CSS & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
+    <div class="container-xl">
+      <a class="navbar-brand" href="{% url 'home' %}">
+        <span class="brand-logo-icon"><i class="bi bi-compass"></i></span>
+        <span>Opportunity<span style="color: var(--teal-light);">Match</span></span>
+      </a>
+
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+          {% if user.is_authenticated and not is_admin_user %}
+            <li class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}" href="{% url 'dashboard:student_dashboard' %}">
+                <i class="bi bi-grid-fill me-1"></i> Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'list' and request.resolver_match.app_name == 'recommendations' %}active{% endif %}" href="{% url 'recommendations:list' %}">
+                <i class="bi bi-stars me-1 text-warning"></i> My Recommendations
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'skill_gaps' %}active{% endif %}" href="{% url 'students:skill_gaps' %}">
+                <i class="bi bi-puzzle-fill me-1"></i> Skill Gaps
+              </a>
+            </li>
+          {% endif %}
+
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'list' and request.resolver_match.app_name == 'opportunities' %}active{% endif %}" href="{% url 'opportunities:list' %}">
+              <i class="bi bi-briefcase-fill me-1"></i> Explore Opportunities
+            </a>
+          </li>
+
+          {% if user.is_authenticated and not is_admin_user %}
+            <li class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'saved' %}active{% endif %}" href="{% url 'opportunities:saved' %}">
+                <i class="bi bi-bookmark-fill me-1"></i> Saved
+                {% if saved_count > 0 %}
+                  <span class="badge bg-secondary rounded-pill ms-1">{{ saved_count }}</span>
+                {% endif %}
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'applications' %}active{% endif %}" href="{% url 'opportunities:applications' %}">
+                <i class="bi bi-send-check-fill me-1"></i> Tracker
+                {% if applied_count > 0 %}
+                  <span class="badge bg-primary rounded-pill ms-1">{{ applied_count }}</span>
+                {% endif %}
+              </a>
+            </li>
+          {% endif %}
+
+          {% if is_admin_user %}
+            <li class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" href="{% url 'dashboard:admin_dashboard' %}">
+                <i class="bi bi-speedometer2 me-1"></i> Admin Analytics
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'opportunities:create' %}">
+                <i class="bi bi-plus-circle-fill me-1 text-success"></i> Add Opportunity
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+
+        <!-- Right Side Nav -->
+        <ul class="navbar-nav ms-auto align-items-lg-center">
+          {% if user.is_authenticated %}
+            <!-- Notifications Dropdown -->
+            {% if not is_admin_user %}
+              <li class="nav-item dropdown me-2">
+                <a class="nav-link position-relative text-white" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="bi bi-bell-fill fs-5"></i>
+                  {% if unread_notifications_count > 0 %}
+                    <span class="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                      {{ unread_notifications_count }}
+                    </span>
+                  {% endif %}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2" aria-labelledby="notifDropdown" style="width: 320px; max-height: 380px; overflow-y: auto;">
+                  <li class="d-flex justify-content-between align-items-center px-2 py-1 mb-2 border-bottom">
+                    <span class="fw-bold text-dark small">Notifications</span>
+                    {% if unread_notifications_count > 0 %}
+                      <a href="{% url 'students:mark_all_notifications_read' %}" class="small text-decoration-none text-teal">Mark all read</a>
+                    {% endif %}
+                  </li>
+                  {% if student_profile and student_profile.notifications.all %}
+                    {% for notif in student_profile.notifications.all|slice:":6" %}
+                      <li class="p-2 mb-1 rounded {% if not notif.is_read %}bg-light border-start border-3 border-teal{% endif %}">
+                        <div class="d-flex justify-content-between">
+                          <strong class="small text-dark">{{ notif.title }}</strong>
+                          <span class="text-muted" style="font-size: 0.7rem;">{{ notif.created_at|timesince }} ago</span>
+                        </div>
+                        <p class="small text-muted mb-0 mt-1" style="font-size: 0.8rem;">{{ notif.message }}</p>
+                      </li>
+                    {% endfor %}
+                  {% else %}
+                    <li class="text-center py-3 text-muted small">No notifications yet</li>
+                  {% endif %}
+                </ul>
+              </li>
+            {% endif %}
+
+            <!-- User Menu -->
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle text-white d-flex align-items-center gap-2" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="bg-teal text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 0.85rem; background-color: var(--teal-primary);">
+                  {{ user.first_name|first|default:user.username|first|upper }}
+                </div>
+                <span>{{ user.first_name|default:user.username }}</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2" aria-labelledby="userMenu">
+                {% if not is_admin_user %}
+                  <li><a class="dropdown-item py-2" href="{% url 'students:profile' %}"><i class="bi bi-person-circle me-2"></i> My Profile</a></li>
+                  <li><a class="dropdown-item py-2" href="{% url 'students:profile_edit' %}"><i class="bi bi-pencil-square me-2"></i> Edit Preferences</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                {% else %}
+                  <li><a class="dropdown-item py-2" href="{% url 'dashboard:admin_dashboard' %}"><i class="bi bi-speedometer2 me-2"></i> Admin Analytics</a></li>
+                  <li><a class="dropdown-item py-2" href="/admin/" target="_blank"><i class="bi bi-shield-lock me-2"></i> Django Admin</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                {% endif %}
+                <li>
+                  <form method="post" action="{% url 'accounts:logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item py-2 text-danger"><i class="bi bi-box-arrow-right me-2"></i> Logout</button>
+                  </form>
+                </li>
+              </ul>
+            </li>
+          {% else %}
+            <li class="nav-item me-2">
+              <a class="nav-link text-white" href="{% url 'accounts:login' %}">Sign In</a>
+            </li>
+            <li class="nav-item">
+              <a class="btn btn-primary-teal btn-sm px-3" href="{% url 'accounts:register' %}">Get Started</a>
+            </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Flash Messages -->
+  <div class="container-xl mt-3">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show shadow-sm border-0 d-flex align-items-center gap-2" role="alert">
+          {% if message.tags == 'success' %}
+            <i class="bi bi-check-circle-fill fs-5"></i>
+          {% elif message.tags == 'error' %}
+            <i class="bi bi-exclamation-octagon-fill fs-5"></i>
+          {% else %}
+            <i class="bi bi-info-circle-fill fs-5"></i>
+          {% endif %}
+          <div>{{ message }}</div>
+          <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  <!-- Page Content -->
+  <main class="py-4">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer-custom mt-auto">
+    <div class="container-xl">
+      <div class="row g-4 mb-4">
+        <div class="col-lg-5">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="brand-logo-icon"><i class="bi bi-compass"></i></span>
+            <span class="fs-5 fw-bold text-white">Opportunity<span style="color: var(--teal-light);">Match</span></span>
+          </div>
+          <p class="small text-muted mb-2">
+            Personalized Student Opportunity Discovery & Explainable Skill-Gap Analysis Platform.
+          </p>
+          <p class="small text-secondary mb-0">
+            <strong>Core USP:</strong> "Don't Search for Opportunities. Let the System Search for You."
+          </p>
+        </div>
+        <div class="col-lg-3 col-6">
+          <h6 class="text-white fw-bold mb-3 small text-uppercase letter-spacing-1">Platform Hubs</h6>
+          <ul class="list-unstyled small mb-0 d-flex flex-column gap-2">
+            <li><a href="{% url 'opportunities:list' %}">Explore Opportunities</a></li>
+            <li><a href="{% url 'recommendations:list' %}">Personalized Recommendations</a></li>
+            <li><a href="{% url 'students:skill_gaps' %}">Skill Gap Analysis</a></li>
+            <li><a href="{% url 'opportunities:saved' %}">Saved Opportunities</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4 col-6">
+          <h6 class="text-white fw-bold mb-3 small text-uppercase letter-spacing-1">Matching Engine</h6>
+          <p class="small text-muted mb-2">
+            Deterministic weighted scoring: Eligibility (30%), Skill Match (30%), Interest Match (20%), Preference (10%), Availability (10%).
+          </p>
+          <div class="badge bg-secondary-subtle text-secondary small p-2">
+            <i class="bi bi-shield-check me-1"></i> 100% Explainable & Rule-Based
+          </div>
+        </div>
+      </div>
+      <div class="border-top border-secondary border-opacity-25 pt-3 d-flex flex-column flex-sm-row justify-content-between align-items-center small text-muted">
+        <div>&copy; 2026 OpportunityMatch Platform. Built with Django & Bootstrap 5.</div>
+        <div class="mt-2 mt-sm-0">
+          <span class="badge bg-dark border border-secondary text-white-50">Production Ready</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

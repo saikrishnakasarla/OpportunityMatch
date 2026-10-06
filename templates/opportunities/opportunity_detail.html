@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ opportunity.title }} — OpportunityMatch{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+  <!-- Top Navigation Breadcrumb -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="{% url 'opportunities:list' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i> Back to Opportunities
+    </a>
+    {% if is_admin_user %}
+      <div class="d-flex gap-2">
+        <a href="{% url 'opportunities:edit' opportunity.pk %}" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-pencil me-1"></i> Edit Opportunity
+        </a>
+        <a href="{% url 'opportunities:delete' opportunity.pk %}" class="btn btn-outline-danger btn-sm">
+          <i class="bi bi-trash me-1"></i> Delete
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Opportunity Details -->
+    <div class="col-lg-7">
+      <div class="card card-custom p-4 p-md-5 mb-4">
+        <!-- Badges Bar -->
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <span class="badge bg-teal-soft text-teal-primary fw-semibold fs-6">{{ opportunity.opportunity_type }}</span>
+          <span class="badge bg-light text-secondary border fs-6">{{ opportunity.mode }}</span>
+          {% if opportunity.is_expired %}
+            <span class="badge bg-danger fs-6">Expired</span>
+          {% else %}
+            <span class="badge bg-success-subtle text-success border border-success-subtle fs-6">Active</span>
+          {% endif %}
+        </div>
+
+        <h2 class="fw-bold text-navy mb-2">{{ opportunity.title }}</h2>
+        <h5 class="text-secondary fw-semibold mb-4">
+          <i class="bi bi-building me-1 text-teal"></i> {{ opportunity.organization }}
+        </h5>
+
+        <!-- Key Parameter Grid -->
+        <div class="row g-3 p-3 bg-light rounded-3 border mb-4 small text-secondary">
+          <div class="col-sm-6">
+            <span class="text-muted d-block">Location:</span>
+            <strong><i class="bi bi-geo-alt me-1"></i> {{ opportunity.location }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted d-block">Duration:</span>
+            <strong><i class="bi bi-hourglass-split me-1"></i> {{ opportunity.duration }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted d-block">Application Deadline:</span>
+            <strong><i class="bi bi-calendar3 me-1"></i> {{ opportunity.deadline|date:"d F Y" }} ({{ opportunity.days_remaining }} days left)</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted d-block">Minimum CGPA Required:</span>
+            <strong><i class="bi bi-award me-1"></i> {{ opportunity.minimum_cgpa }} / 10</strong>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-4">
+          <h5 class="fw-bold text-navy mb-2">Description</h5>
+          <p class="text-secondary" style="line-height: 1.7; white-space: pre-line;">
+            {{ opportunity.description }}
+          </p>
+        </div>
+
+        <!-- Eligibility Requirements -->
+        <div class="mb-4">
+          <h5 class="fw-bold text-navy mb-2">Eligibility Criteria</h5>
+          <ul class="list-unstyled d-flex flex-column gap-2 small text-secondary mb-0">
+            <li class="d-flex align-items-center gap-2">
+              <i class="bi bi-check2-square text-teal"></i>
+              <span><strong>Eligible Branches:</strong>
+                {% if opportunity.eligible_branches.all %}
+                  {{ opportunity.eligible_branches.all|join:", " }}
+                {% else %}
+                  Open to all engineering / academic disciplines
+                {% endif %}
+              </span>
+            </li>
+            <li class="d-flex align-items-center gap-2">
+              <i class="bi bi-check2-square text-teal"></i>
+              <span><strong>Eligible Years:</strong>
+                {% if opportunity.eligible_years.all %}
+                  {{ opportunity.eligible_years.all|join:", " }}
+                {% else %}
+                  Open to all academic years
+                {% endif %}
+              </span>
+            </li>
+            <li class="d-flex align-items-center gap-2">
+              <i class="bi bi-check2-square text-teal"></i>
+              <span><strong>Minimum CGPA:</strong> {{ opportunity.minimum_cgpa }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Required Skills -->
+        <div class="mb-4">
+          <h5 class="fw-bold text-navy mb-2">Required Technical Skills</h5>
+          <div class="d-flex flex-wrap gap-2">
+            {% for skill in opportunity.required_skills.all %}
+              <span class="badge bg-light text-navy border py-2 px-3 small">{{ skill.name }}</span>
+            {% empty %}
+              <span class="text-muted small">No specific prerequisite skills mandated.</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex flex-wrap gap-3 pt-3 border-top mt-4">
+          {% if user.is_authenticated and not is_admin_user %}
+            <a href="{% url 'opportunities:save_toggle' opportunity.pk %}" class="btn {% if is_saved %}btn-outline-primary{% else %}btn-outline-secondary{% endif %} px-4">
+              {% if is_saved %}
+                <i class="bi bi-bookmark-check-fill text-primary me-1"></i> Saved to Profile
+              {% else %}
+                <i class="bi bi-bookmark me-1"></i> Save Opportunity
+              {% endif %}
+            </a>
+
+            <!-- Apply Modal Trigger -->
+            <button type="button" class="btn btn-primary-teal px-4" data-bs-toggle="modal" data-bs-target="#applyModal">
+              <i class="bi bi-box-arrow-up-right me-1"></i> Apply & Track Application
+            </button>
+          {% elif not user.is_authenticated %}
+            <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary-teal px-4">
+              Sign In to View Your Match Score & Apply
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Match Score & Explainability -->
+    <div class="col-lg-5">
+      {% if user.is_authenticated and match_data %}
+        <div class="card card-custom p-4 mb-4 border-teal border-opacity-50">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold text-navy mb-0">Personalized Match Analysis</h5>
+            <div class="badge-match-score {% if match_data.overall_score >= 90 %}badge-excellent{% elif match_data.overall_score >= 75 %}badge-strong{% elif match_data.overall_score >= 60 %}badge-moderate{% elif match_data.overall_score >= 40 %}badge-low{% else %}badge-poor{% endif %}">
+              {{ match_data.overall_score|floatformat:0 }}% MATCH
+            </div>
+          </div>
+
+          <div class="badge bg-light text-secondary border p-2 w-100 text-center mb-3 fw-bold">
+            Category: {{ match_data.match_category }}
+          </div>
+
+          <!-- Component Score Breakdown (Section 28) -->
+          <h6 class="fw-bold text-navy small text-uppercase letter-spacing-1 mb-2">Score Breakdown</h6>
+          <div class="table-responsive mb-3">
+            <table class="table table-sm table-borderless small mb-0">
+              <tbody>
+                <tr>
+                  <td class="text-secondary">Academic Eligibility Gate</td>
+                  <td class="text-end fw-bold">{{ match_data.breakdown.eligibility.score }} / 30</td>
+                </tr>
+                <tr>
+                  <td class="text-secondary">Technical Skill Match</td>
+                  <td class="text-end fw-bold">{{ match_data.breakdown.skills.score }} / 30</td>
+                </tr>
+                <tr>
+                  <td class="text-secondary">Domain & Interest Match</td>
+                  <td class="text-end fw-bold">{{ match_data.breakdown.interests.score }} / 20</td>
+                </tr>
+                <tr>
+                  <td class="text-secondary">Preference Alignment</td>
+                  <td class="text-end fw-bold">{{ match_data.breakdown.preferences.score }} / 10</td>
+                </tr>
+                <tr>
+                  <td class="text-secondary">Availability Match</td>
+                  <td class="text-end fw-bold">{{ match_data.breakdown.availability.score }} / 10</td>
+                </tr>
+                <tr class="border-top">
+                  <td class="fw-bold text-navy">TOTAL COMPATIBILITY</td>
+                  <td class="text-end fw-bold text-teal fs-6">{{ match_data.breakdown.total.score }} / 100</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Why This Match? (Section 28) -->
+          <div class="match-explanation-box mb-3">
+            <h6 class="fw-bold text-navy small mb-2 text-uppercase" style="font-size: 0.75rem;">
+              <i class="bi bi-check-circle-fill text-success me-1"></i> Why is this recommended?
+            </h6>
+            {% for item in match_data.explanation_items %}
+              <div class="check-item"><i class="bi bi-check-circle-fill"></i> <span>{{ item|cut:"✓ " }}</span></div>
+            {% endfor %}
+
+            <!-- Missing Skills & Skill Gap -->
+            {% if match_data.missing_skills %}
+              <div class="mt-3 pt-2 border-top">
+                <h6 class="fw-bold text-warning small mb-2 text-uppercase" style="font-size: 0.75rem;">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i> Missing Skills
+                </h6>
+                <div class="d-flex flex-wrap gap-1">
+                  {% for sk in match_data.missing_skills %}
+                    <span class="skill-tag missing">{{ sk }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Opportunity Readiness Message (Section 30) -->
+          {% if skill_gap_data %}
+            <div class="p-3 bg-light rounded-3 border small text-secondary">
+              <strong class="d-block text-navy mb-1">Technical Skill Alignment: {{ skill_gap_data.readiness_percentage }}%</strong>
+              <p class="mb-0">{{ skill_gap_data.readiness_message }}</p>
+            </div>
+          {% endif %}
+        </div>
+      {% elif not user.is_authenticated %}
+        <div class="card card-custom p-4 text-center bg-light">
+          <i class="bi bi-lock-fill fs-2 text-muted mb-2"></i>
+          <h5 class="fw-bold text-navy">Sign in to view compatibility</h5>
+          <p class="text-muted small">Our automatic matching engine evaluates your academic eligibility and calculates a transparent compatibility score.</p>
+          <a href="{% url 'accounts:login' %}" class="btn btn-primary-teal btn-sm mx-auto">Sign In Now</a>
+        </div>
+      {% endif %}
+
+      <!-- Application Status Widget if applied -->
+      {% if application %}
+        <div class="card card-custom p-4 bg-light border-primary-subtle">
+          <h6 class="fw-bold text-navy mb-2"><i class="bi bi-send-check-fill text-primary me-1"></i> Application Tracking</h6>
+          <p class="small text-muted mb-2">You recorded an application for this opportunity on {{ application.applied_at|date:"d M Y" }}.</p>
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="badge bg-primary fs-6">{{ application.status }}</span>
+            <a href="{% url 'opportunities:applications' %}" class="btn btn-outline-secondary btn-sm">Manage Status</a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Apply & Track Modal -->
+{% if user.is_authenticated and not is_admin_user %}
+<div class="modal fade" id="applyModal" tabindex="-1" aria-labelledby="applyModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content card-custom">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-navy" id="applyModalLabel">Apply for {{ opportunity.title }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{% url 'opportunities:apply' opportunity.pk %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <p class="small text-muted mb-3">
+            OpportunityMatch records your application in your internal student tracker so you can track your status, deadlines, and notes.
+          </p>
+
+          <div class="p-3 bg-light rounded-3 border mb-3 small text-secondary">
+            <div class="fw-bold text-navy mb-1">External Application Portal:</div>
+            <a href="{{ opportunity.application_url }}" target="_blank" class="text-teal text-truncate d-block">
+              {{ opportunity.application_url }} <i class="bi bi-box-arrow-up-right ms-1"></i>
+            </a>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-secondary">Optional Application Notes</label>
+            <textarea name="notes" class="form-control form-control-sm" rows="2" placeholder="e.g. Applied with resume version 2, reference ID #1234"></textarea>
+          </div>
+
+          <div class="form-check small text-secondary">
+            <input class="form-check-input" type="checkbox" name="redirect_external" value="1" id="redirectExternal" checked>
+            <label class="form-check-label" for="redirectExternal">
+              Open external application portal in a new tab upon recording
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary-teal btn-sm">Confirm & Track Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

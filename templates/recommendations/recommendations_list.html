@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}Personalized Recommendations — OpportunityMatch{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+  <!-- Page Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-teal-soft text-teal-primary mb-2 small fw-bold">
+        <i class="bi bi-stars"></i> Automatic Matching Engine
+      </div>
+      <h2 class="fw-bold text-navy mb-1">Personalized Recommendations</h2>
+      <p class="text-muted small mb-0">Opportunities ranked by compatibility score calculated across your academics, skills, and preferences.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'recommendations:recalculate' %}" class="btn btn-outline-teal btn-sm px-3 d-flex align-items-center gap-2">
+        <i class="bi bi-arrow-clockwise"></i> Recalculate Matches
+      </a>
+      <a href="{% url 'students:skill_gaps' %}" class="btn btn-navy btn-sm px-3 d-flex align-items-center gap-2">
+        <i class="bi bi-puzzle"></i> Skill Gap Analysis
+      </a>
+    </div>
+  </div>
+
+  <!-- Filter & Match Tier Summary Bar -->
+  <div class="card card-custom p-3 mb-4">
+    <div class="row g-3 align-items-center">
+      <div class="col-md-8">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <span class="small fw-semibold text-secondary me-2">Match Tier:</span>
+          <a href="?category=All&sort={{ selected_sort }}" class="btn btn-sm {% if selected_category == 'All' %}btn-navy{% else %}btn-outline-secondary{% endif %} rounded-pill">
+            All ({{ total_matches }})
+          </a>
+          <a href="?category=Excellent Match&sort={{ selected_sort }}" class="btn btn-sm {% if selected_category == 'Excellent Match' %}btn-success{% else %}btn-outline-success{% endif %} rounded-pill">
+            <i class="bi bi-star-fill me-1"></i> Excellent (90%+) <span class="badge bg-white text-dark ms-1">{{ excellent_count }}</span>
+          </a>
+          <a href="?category=Strong Match&sort={{ selected_sort }}" class="btn btn-sm {% if selected_category == 'Strong Match' %}btn-teal text-white{% else %}btn-outline-teal{% endif %} rounded-pill">
+            Strong (75-89%) <span class="badge bg-white text-dark ms-1">{{ strong_count }}</span>
+          </a>
+          <a href="?category=Moderate Match&sort={{ selected_sort }}" class="btn btn-sm {% if selected_category == 'Moderate Match' %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-pill">
+            Moderate (60-74%) <span class="badge bg-white text-dark ms-1">{{ moderate_count }}</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-md-4 text-md-end">
+        <form method="get" class="d-inline-flex gap-2 align-items-center">
+          <input type="hidden" name="category" value="{{ selected_category }}">
+          <label class="small text-secondary fw-semibold">Sort:</label>
+          <select name="sort" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+            <option value="score" {% if selected_sort == 'score' %}selected{% endif %}>Highest Match %</option>
+            <option value="deadline" {% if selected_sort == 'deadline' %}selected{% endif %}>Closing Soonest</option>
+          </select>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommendations List -->
+  {% if recommendations %}
+    <div class="row g-4">
+      {% for match in recommendations %}
+        <div class="col-lg-6">
+          <div class="card card-custom card-hover-elevate h-100 p-4 d-flex flex-column">
+            <!-- Header Row -->
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+              <div>
+                <span class="badge bg-teal-soft text-teal-primary fw-semibold">{{ match.opportunity.opportunity_type }}</span>
+                <span class="badge bg-light text-secondary border">{{ match.opportunity.mode }}</span>
+                <h5 class="fw-bold mt-2 mb-1 text-navy">
+                  <a href="{% url 'opportunities:detail' match.opportunity.pk %}" class="text-navy text-decoration-none">
+                    {{ match.opportunity.title }}
+                  </a>
+                </h5>
+                <p class="text-muted small mb-0">
+                  <i class="bi bi-building me-1"></i> {{ match.opportunity.organization }} &bull; <i class="bi bi-geo-alt me-1"></i> {{ match.opportunity.location }}
+                </p>
+              </div>
+
+              <!-- Match Score Pill -->
+              <div class="badge-match-score {% if match.overall_score >= 90 %}badge-excellent{% elif match.overall_score >= 75 %}badge-strong{% elif match.overall_score >= 60 %}badge-moderate{% elif match.overall_score >= 40 %}badge-low{% else %}badge-poor{% endif %}">
+                <i class="bi bi-lightning-charge-fill"></i> {{ match.score_int }}% MATCH
+              </div>
+            </div>
+
+            <!-- Score Breakdown Pills -->
+            <div class="p-2 bg-light rounded-3 my-2 small border">
+              <div class="d-flex flex-wrap justify-content-between text-secondary" style="font-size: 0.775rem;">
+                <span>Eligibility: <strong>{{ match.eligibility_score|floatformat:0 }}/30</strong></span>
+                <span>Skills: <strong>{{ match.skill_score|floatformat:0 }}/30</strong></span>
+                <span>Interests: <strong>{{ match.interest_score|floatformat:0 }}/20</strong></span>
+                <span>Prefs: <strong>{{ match.preference_score|floatformat:0 }}/10</strong></span>
+                <span>Avail: <strong>{{ match.availability_score|floatformat:0 }}/10</strong></span>
+              </div>
+            </div>
+
+            <!-- Explainable Match Section -->
+            <div class="match-explanation-box my-2 flex-grow-1">
+              <div class="small fw-semibold text-success mb-1">
+                <i class="bi bi-check-circle-fill me-1"></i> Why this match?
+              </div>
+              <div class="d-flex flex-wrap gap-1 mb-2">
+                {% if match.explanation_items %}
+                  {% for item in match.explanation_items|slice:":4" %}
+                    <span class="skill-tag matched" style="font-size: 0.75rem;">{{ item }}</span>
+                  {% endfor %}
+                {% endif %}
+              </div>
+
+              {% if match.missing_skills_data %}
+                <div class="small fw-semibold text-warning mb-1 pt-1 border-top">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i> Missing skills:
+                </div>
+                <div class="d-flex flex-wrap gap-1">
+                  {% for sk in match.missing_skills_data %}
+                    <span class="skill-tag missing" style="font-size: 0.75rem;">{{ sk }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="small text-success fw-semibold pt-1 border-top">
+                  <i class="bi bi-check-all me-1"></i> All skill requirements satisfied!
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Action Footer -->
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto small">
+              <span class="text-muted">
+                <i class="bi bi-calendar3 me-1"></i> Deadline: <strong>{{ match.opportunity.deadline|date:"d M Y" }}</strong>
+              </span>
+              <div class="d-flex gap-2">
+                <a href="{% url 'opportunities:save_toggle' match.opportunity.pk %}" class="btn btn-outline-secondary btn-sm">
+                  {% if match.opportunity.pk in saved_ids %}
+                    <i class="bi bi-bookmark-check-fill text-primary"></i> Saved
+                  {% else %}
+                    <i class="bi bi-bookmark"></i> Save
+                  {% endif %}
+                </a>
+                <a href="{% url 'opportunities:detail' match.opportunity.pk %}" class="btn btn-primary-teal btn-sm">
+                  View Full Details
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card card-custom p-5 text-center">
+      <i class="bi bi-search fs-1 text-muted mb-3"></i>
+      <h5 class="fw-bold">No recommendations match the selected filter</h5>
+      <p class="text-muted small">Try selecting "All" or updating your profile preferences.</p>
+      <a href="{% url 'recommendations:list' %}" class="btn btn-outline-teal btn-sm mx-auto">Reset Filters</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

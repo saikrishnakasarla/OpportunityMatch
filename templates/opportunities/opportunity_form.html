@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} — OpportunityMatch{% endblock %}
+
+{% block content %}
+<div class="container-xl my-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card card-custom p-4 p-md-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+          <div>
+            <h3 class="fw-bold text-navy mb-1">{{ title }}</h3>
+            <p class="text-muted small mb-0">Define academic eligibility gates, required technical skills, and schedule details.</p>
+          </div>
+          <a href="{% url 'dashboard:admin_dashboard' %}" class="btn btn-outline-secondary btn-sm">Cancel</a>
+        </div>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger p-2 small mb-3">
+              {{ form.non_field_errors|join:", " }}
+            </div>
+          {% endif %}
+
+          <!-- Section 1: Basic Information -->
+          <h5 class="fw-bold text-teal small text-uppercase mb-3 letter-spacing-1">1. Opportunity Details</h5>
+          <div class="row g-3 mb-4">
+            <div class="col-md-8">
+              <label class="form-label small fw-semibold text-secondary">Opportunity Title *</label>
+              {{ form.title }}
+              {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Organization / Company *</label>
+              {{ form.organization }}
+              {% if form.organization.errors %}<div class="text-danger small">{{ form.organization.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold text-secondary">Description *</label>
+              {{ form.description }}
+              {% if form.description.errors %}<div class="text-danger small">{{ form.description.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Opportunity Type *</label>
+              {{ form.opportunity_type }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Domain / Technical Field *</label>
+              {{ form.domain }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Work Mode *</label>
+              {{ form.mode }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Location</label>
+              {{ form.location }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Duration</label>
+              {{ form.duration }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Application Deadline *</label>
+              {{ form.deadline }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold text-secondary">External Application URL *</label>
+              {{ form.application_url }}
+            </div>
+            <div class="col-12">
+              <div class="form-check">
+                {{ form.is_active }}
+                <label class="form-check-label small fw-semibold" for="{{ form.is_active.id_for_label }}">
+                  Opportunity is Active & discoverable in matching engine
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Eligibility Gate Parameters -->
+          <h5 class="fw-bold text-teal small text-uppercase mb-3 letter-spacing-1">2. Hard Eligibility Gate Parameters</h5>
+          <p class="text-muted small mb-3">If students do not satisfy these parameters, the eligibility gate flags them as ineligible.</p>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-secondary">Eligible Branches (Hold Ctrl/Cmd to select multiple)</label>
+              {{ form.eligible_branches }}
+              <div class="form-text small">Leave unselected if open to all branches.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-secondary">Eligible Academic Years</label>
+              {{ form.eligible_years }}
+              <div class="form-text small">Leave unselected if open to all years.</div>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label small fw-semibold text-secondary">Minimum CGPA (0.0 for none)</label>
+              {{ form.minimum_cgpa }}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label small fw-semibold text-secondary">Maximum Age (Optional)</label>
+              {{ form.maximum_age }}
+            </div>
+          </div>
+
+          <!-- Section 3: Skills & Domain Interests -->
+          <h5 class="fw-bold text-teal small text-uppercase mb-3 letter-spacing-1">3. Required Skills & Technical Interests</h5>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-secondary">Required Technical Skills</label>
+              {{ form.required_skills }}
+              <div class="form-text small">Skills evaluated by the skill gap engine.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-secondary">Related Domain Interests</label>
+              {{ form.interests }}
+              <div class="form-text small">Helps score interest alignment (20%).</div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+            <a href="{% url 'dashboard:admin_dashboard' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+            <button type="submit" class="btn btn-primary-teal px-4">Save Opportunity</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

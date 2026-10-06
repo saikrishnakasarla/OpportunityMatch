@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Explore Opportunities — OpportunityMatch{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+  <!-- Page Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <h2 class="fw-bold text-navy mb-1">Explore Opportunities</h2>
+      <p class="text-muted small mb-0">Browse active internships, hackathons, scholarships, and research programs.</p>
+    </div>
+    {% if is_admin_user %}
+      <a href="{% url 'opportunities:create' %}" class="btn btn-primary-teal btn-sm">
+        <i class="bi bi-plus-lg me-1"></i> Add Opportunity
+      </a>
+    {% elif user.is_authenticated %}
+      <a href="{% url 'recommendations:list' %}" class="btn btn-outline-teal btn-sm">
+        <i class="bi bi-stars text-warning me-1"></i> Switch to Automatic Recommendations
+      </a>
+    {% endif %}
+  </div>
+
+  <!-- Search & Filter Bar -->
+  <div class="card card-custom p-3 p-md-4 mb-4">
+    <form method="get" class="row g-3 align-items-end">
+      <!-- Search Input -->
+      <div class="col-lg-4 col-md-6">
+        <label class="form-label small fw-semibold text-secondary mb-1">Search Keywords</label>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-light text-muted"><i class="bi bi-search"></i></span>
+          <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search by title, organization, skill...">
+        </div>
+      </div>
+
+      <!-- Type Filter -->
+      <div class="col-lg-2 col-md-3 col-6">
+        <label class="form-label small fw-semibold text-secondary mb-1">Type</label>
+        <select name="type" class="form-select form-select-sm">
+          <option value="">All Types</option>
+          {% for val, label in opportunity_types %}
+            <option value="{{ val }}" {% if selected_type == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Mode Filter -->
+      <div class="col-lg-2 col-md-3 col-6">
+        <label class="form-label small fw-semibold text-secondary mb-1">Work Mode</label>
+        <select name="mode" class="form-select form-select-sm">
+          <option value="">All Modes</option>
+          <option value="Online" {% if selected_mode == 'Online' %}selected{% endif %}>Online / Remote</option>
+          <option value="Offline" {% if selected_mode == 'Offline' %}selected{% endif %}>Offline</option>
+          <option value="Hybrid" {% if selected_mode == 'Hybrid' %}selected{% endif %}>Hybrid</option>
+        </select>
+      </div>
+
+      <!-- Domain Filter -->
+      <div class="col-lg-2 col-md-4 col-6">
+        <label class="form-label small fw-semibold text-secondary mb-1">Domain</label>
+        <select name="domain" class="form-select form-select-sm">
+          <option value="">All Domains</option>
+          {% for dom in domains %}
+            <option value="{{ dom }}" {% if selected_domain == dom %}selected{% endif %}>{{ dom }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Sort Filter -->
+      <div class="col-lg-2 col-md-4 col-6">
+        <label class="form-label small fw-semibold text-secondary mb-1">Sort By</label>
+        <select name="sort" class="form-select form-select-sm">
+          <option value="deadline" {% if selected_sort == 'deadline' %}selected{% endif %}>Deadline (Soonest)</option>
+          {% if user.is_authenticated and not is_admin_user %}
+            <option value="score_desc" {% if selected_sort == 'score_desc' %}selected{% endif %}>Match Score (Highest)</option>
+          {% endif %}
+          <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Recently Added</option>
+        </select>
+      </div>
+
+      <!-- Submit & Reset Buttons -->
+      <div class="col-12 d-flex gap-2 justify-content-end">
+        <a href="{% url 'opportunities:list' %}" class="btn btn-outline-secondary btn-sm px-3">Clear Filters</a>
+        <button type="submit" class="btn btn-navy btn-sm px-4">Apply Filters</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <small class="text-muted">Showing <strong>{{ total_count }}</strong> opportunities</small>
+    {% if user.is_authenticated and not is_admin_user %}
+      <span class="small text-teal fw-semibold">
+        <i class="bi bi-info-circle me-1"></i> Personalized match scores computed for your profile
+      </span>
+    {% endif %}
+  </div>
+
+  <!-- Opportunities Grid -->
+  {% if opportunities %}
+    <div class="row g-4">
+      {% for item in opportunities %}
+        {% with opp=item.opportunity %}
+          <div class="col-md-6 col-lg-4">
+            <div class="card card-custom card-hover-elevate h-100 p-4 d-flex flex-column">
+              <!-- Top Row: Badges & Match % -->
+              <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <span class="badge bg-teal-soft text-teal-primary fw-semibold">{{ opp.opportunity_type }}</span>
+                  <span class="badge bg-light text-secondary border">{{ opp.mode }}</span>
+                </div>
+                {% if item.match_score is not None %}
+                  <div class="badge-match-score {% if item.match_score >= 90 %}badge-excellent{% elif item.match_score >= 75 %}badge-strong{% elif item.match_score >= 60 %}badge-moderate{% elif item.match_score >= 40 %}badge-low{% else %}badge-poor{% endif %}" style="font-size: 0.825rem; padding: 0.25rem 0.65rem;">
+                    {{ item.match_score|floatformat:0 }}% MATCH
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Title & Org -->
+              <h5 class="fw-bold mb-1 text-navy">
+                <a href="{% url 'opportunities:detail' opp.pk %}" class="text-navy text-decoration-none">
+                  {{ opp.title }}
+                </a>
+              </h5>
+              <p class="text-muted small mb-2">
+                <i class="bi bi-building me-1"></i> {{ opp.organization }} &bull; <i class="bi bi-geo-alt me-1"></i> {{ opp.location }}
+              </p>
+
+              <p class="text-secondary small flex-grow-1 mb-3">
+                {{ opp.description|truncatewords:16 }}
+              </p>
+
+              <!-- Required Skills Tags -->
+              <div class="mb-3">
+                <div class="text-muted small mb-1" style="font-size: 0.75rem;">Required Skills:</div>
+                <div class="d-flex flex-wrap gap-1">
+                  {% for s in opp.required_skills.all|slice:":4" %}
+                    <span class="skill-tag" style="font-size: 0.75rem;">{{ s.name }}</span>
+                  {% empty %}
+                    <span class="text-muted small" style="font-size: 0.75rem;">No prerequisites</span>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <!-- Card Footer -->
+              <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto small">
+                <span class="text-muted">
+                  <i class="bi bi-calendar3 me-1"></i> {{ opp.deadline|date:"d M Y" }}
+                </span>
+                <div class="d-flex gap-2">
+                  {% if user.is_authenticated and not is_admin_user %}
+                    <a href="{% url 'opportunities:save_toggle' opp.pk %}" class="btn btn-outline-secondary btn-sm p-1 px-2" title="Save opportunity">
+                      {% if item.is_saved %}
+                        <i class="bi bi-bookmark-check-fill text-primary"></i>
+                      {% else %}
+                        <i class="bi bi-bookmark"></i>
+                      {% endif %}
+                    </a>
+                  {% endif %}
+                  <a href="{% url 'opportunities:detail' opp.pk %}" class="btn btn-navy btn-sm px-3">
+                    View
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card card-custom p-5 text-center">
+      <i class="bi bi-search fs-1 text-muted mb-3"></i>
+      <h5 class="fw-bold">No opportunities matched your search criteria</h5>
+      <p class="text-muted small">Try broadening your search keywords or resetting filters.</p>
+      <a href="{% url 'opportunities:list' %}" class="btn btn-outline-teal btn-sm mx-auto">Reset All Filters</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Saved Opportunities — OpportunityMatch{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold text-navy mb-1">Saved Opportunities</h2>
+      <p class="text-muted small mb-0">Bookmarked opportunities you want to review or apply to later.</p>
+    </div>
+    <span class="badge bg-teal-soft text-teal-primary fs-6">{{ saved_count }} Saved</span>
+  </div>
+
+  {% if items %}
+    <div class="row g-4">
+      {% for item in items %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card card-custom card-hover-elevate h-100 p-4 d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+              <span class="badge bg-teal-soft text-teal-primary fw-semibold">{{ item.opportunity.opportunity_type }}</span>
+              {% if item.match %}
+                <div class="badge-match-score {% if item.match.overall_score >= 90 %}badge-excellent{% elif item.match.overall_score >= 75 %}badge-strong{% elif item.match.overall_score >= 60 %}badge-moderate{% elif item.match.overall_score >= 40 %}badge-low{% else %}badge-poor{% endif %}" style="font-size: 0.8rem; padding: 0.2rem 0.6rem;">
+                  {{ item.match.score_int }}%
+                </div>
+              {% endif %}
+            </div>
+
+            <h5 class="fw-bold mb-1 text-navy">
+              <a href="{% url 'opportunities:detail' item.opportunity.pk %}" class="text-navy text-decoration-none">
+                {{ item.opportunity.title }}
+              </a>
+            </h5>
+            <p class="text-muted small mb-2"><i class="bi bi-building me-1"></i> {{ item.opportunity.organization }}</p>
+
+            <div class="small text-secondary mb-3">
+              <div><i class="bi bi-calendar3 me-1 text-muted"></i> Deadline: <strong>{{ item.opportunity.deadline|date:"d M Y" }}</strong></div>
+              <div><i class="bi bi-geo-alt me-1 text-muted"></i> {{ item.opportunity.mode }} &bull; {{ item.opportunity.location }}</div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto small">
+              <a href="{% url 'opportunities:save_toggle' item.opportunity.pk %}" class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-trash me-1"></i> Remove
+              </a>
+              <a href="{% url 'opportunities:detail' item.opportunity.pk %}" class="btn btn-navy btn-sm px-3">
+                View & Apply
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card card-custom p-5 text-center">
+      <i class="bi bi-bookmark fs-1 text-muted mb-3"></i>
+      <h5 class="fw-bold">No saved opportunities yet</h5>
+      <p class="text-muted small">Browse recommended opportunities and click 'Save' to bookmark them here.</p>
+      <a href="{% url 'recommendations:list' %}" class="btn btn-primary-teal btn-sm mx-auto">Explore Recommendations</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

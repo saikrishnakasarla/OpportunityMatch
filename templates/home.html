@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}OpportunityMatch — Discover Opportunities That Fit You{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-gradient rounded-4 my-2 p-4 p-md-5 mx-auto container-xl text-center text-lg-start">
+  <div class="row align-items-center g-4">
+    <div class="col-lg-7">
+      <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white bg-opacity-10 text-teal-light mb-3 small fw-semibold">
+        <i class="bi bi-cpu-fill text-warning"></i> Automated Compatibility & Skill Gap Engine
+      </div>
+      <h1 class="hero-title mb-3">
+        Discover Opportunities That <span style="background: linear-gradient(135deg, #14b8a6, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Fit You.</span>
+      </h1>
+      <p class="hero-subtitle mb-4">
+        Stop searching through hundreds of posts. Let OpportunityMatch automatically analyze your academic profile, skills, and preferences to find your highest-compatibility internships, hackathons, and research fellowships.
+      </p>
+      <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+        <a href="{% url 'accounts:register' %}" class="btn btn-primary-teal btn-lg px-4 py-3 fs-6 d-flex align-items-center gap-2">
+          <span>Get Started — Free</span>
+          <i class="bi bi-arrow-right"></i>
+        </a>
+        <a href="{% url 'opportunities:list' %}" class="btn btn-outline-light btn-lg px-4 py-3 fs-6">
+          <i class="bi bi-search me-1"></i> Explore Opportunities
+        </a>
+      </div>
+      <div class="mt-4 pt-2 d-flex flex-wrap gap-4 text-white-50 small justify-content-center justify-content-lg-start">
+        <div><i class="bi bi-check-circle-fill text-teal-light me-1"></i> No Middleman / Human Delays</div>
+        <div><i class="bi bi-check-circle-fill text-teal-light me-1"></i> 100% Explainable Scoring</div>
+        <div><i class="bi bi-check-circle-fill text-teal-light me-1"></i> Immediate Skill-Gap Analysis</div>
+      </div>
+    </div>
+
+    <!-- Live Preview Interactive Card -->
+    <div class="col-lg-5">
+      <div class="card bg-white text-dark shadow-lg border-0 rounded-4 p-4 text-start">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <span class="badge bg-primary-subtle text-primary fw-bold text-uppercase px-2 py-1 small">Research Internship</span>
+            <h5 class="fw-bold mt-1 mb-0">AI / ML Systems Fellowship</h5>
+            <small class="text-muted"><i class="bi bi-building me-1"></i> Apex Neural Labs</small>
+          </div>
+          <div class="badge-match-score badge-excellent">
+            <i class="bi bi-stars"></i> 94% MATCH
+          </div>
+        </div>
+
+        <div class="match-explanation-box mb-3">
+          <div class="text-uppercase fw-bold text-muted mb-2" style="font-size: 0.725rem; letter-spacing: 0.05em;">Why is this recommended?</div>
+          <div class="check-item"><i class="bi bi-check-circle-fill"></i> <span>Python skill matched (Advanced)</span></div>
+          <div class="check-item"><i class="bi bi-check-circle-fill"></i> <span>Django & SQL skills matched</span></div>
+          <div class="check-item"><i class="bi bi-check-circle-fill"></i> <span>Information Technology branch eligible</span></div>
+          <div class="check-item"><i class="bi bi-check-circle-fill"></i> <span>3rd year eligible & CGPA requirement satisfied</span></div>
+          <div class="check-item"><i class="bi bi-check-circle-fill"></i> <span>Remote work mode preference aligned</span></div>
+          <div class="warning-item mt-2 pt-2 border-top border-warning-subtle">
+            <i class="bi bi-exclamation-triangle-fill"></i> <span>Missing: <strong>Docker</strong>, <strong>Git</strong></span>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center small text-muted">
+          <span><i class="bi bi-geo-alt me-1"></i> Remote</span>
+          <span><i class="bi bi-calendar-event me-1"></i> Deadline: 35 days</span>
+          <span class="text-teal fw-bold">Deterministic Match</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Live Platform Stats -->
+<section class="container-xl my-5">
+  <div class="row g-4 text-center">
+    <div class="col-md-4">
+      <div class="stat-box justify-content-center p-4">
+        <div class="stat-icon-wrapper bg-teal-soft text-teal-primary">
+          <i class="bi bi-briefcase-fill"></i>
+        </div>
+        <div class="text-start">
+          <h3 class="fw-bold mb-0 text-navy">{{ total_opportunities }}+</h3>
+          <span class="text-muted small">Curated Opportunities Active</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-box justify-content-center p-4">
+        <div class="stat-icon-wrapper bg-primary-subtle text-primary">
+          <i class="bi bi-code-square"></i>
+        </div>
+        <div class="text-start">
+          <h3 class="fw-bold mb-0 text-navy">{{ total_skills }}+</h3>
+          <span class="text-muted small">Verified Technical Skills Tracked</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-box justify-content-center p-4">
+        <div class="stat-icon-wrapper bg-success-subtle text-success">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="text-start">
+          <h3 class="fw-bold mb-0 text-navy">{{ total_students }}+</h3>
+          <span class="text-muted small">Students Discovered Opportunities</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- The Core Paradigm Shift: "Don't Search, Let the System Match" -->
+<section class="container-xl my-5 py-4">
+  <div class="text-center max-w-700 mx-auto mb-5">
+    <span class="badge bg-teal-soft text-teal-primary fw-bold px-3 py-2 rounded-pill text-uppercase mb-2">Our Core USP</span>
+    <h2 class="fw-bold fs-1 text-navy">Don't Search for Opportunities.<br><span class="text-teal">Let the System Search for You.</span></h2>
+    <p class="text-muted">
+      Traditional job boards make you filter through hundreds of irrelevant postings. OpportunityMatch reverses the paradigm by building a structured model of your profile and running deterministic matching.
+    </p>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card p-4 h-100 border-danger border-opacity-25 bg-danger bg-opacity-10 rounded-4">
+        <div class="d-flex align-items-center gap-2 mb-3 text-danger fw-bold">
+          <i class="bi bi-x-circle-fill fs-4"></i>
+          <span>The Old, Exhausting Way</span>
+        </div>
+        <ul class="list-unstyled text-muted d-flex flex-column gap-3 mb-0">
+          <li class="d-flex align-items-start gap-2">
+            <i class="bi bi-dash-circle text-danger mt-1"></i>
+            <span>Browse 50+ websites and endless telegram/whatsapp channels manually.</span>
+          </li>
+          <li class="d-flex align-items-start gap-2">
+            <i class="bi bi-dash-circle text-danger mt-1"></i>
+            <span>Read 3 pages of fine print eligibility rules to find out your branch isn't eligible.</span>
+          </li>
+          <li class="d-flex align-items-start gap-2">
+            <i class="bi bi-dash-circle text-danger mt-1"></i>
+            <span>Guess which skills you need or whether your CGPA qualifies.</span>
+          </li>
+          <li class="d-flex align-items-start gap-2">
+            <i class="bi bi-dash-circle text-danger mt-1"></i>
+            <span>Zero clarity on why you were disqualified or which skills were missing.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card p-4 h-100 border-success border-opacity-25 bg-success bg-opacity-10 rounded-4">
+        <div class="d-flex align-items-center gap-2 mb-3 text-success fw-bold">
+          <i class="bi bi-check-circle-fill fs-4"></i>
+          <span>The OpportunityMatch Way</span>
+        </div>
+        <ul class="list-unstyled text-dark d-flex flex-column gap-3 mb-0">
+          <li class="d-flex align-items-start gap-2">
+            <i class="bi bi-check2-circle text-success fs-5 mt-1"></i>
+            <span><strong>Profile once:</strong> Add academics, skills with levels, and preferences.</span>
+          </li>
+          <li class="d-flex align-items-start gap-2">
+            <i class="bi bi-check2-circle text-success fs-5 mt-1"></i>
+            <span><strong>Hard Eligibility Gate:</strong> Instant verification of branch, year, CGPA, and deadline.</span>
+          </li>
+          <li class="d-flex align-items-start gap-2">
+            <i class="bi bi-check2-circle text-success fs-5 mt-1"></i>
+            <span><strong>Weighted 5-Tier Scoring:</strong> Eligibility (30%), Skills (30%), Interests (20%), Preferences (10%), Availability (10%).</span>
+          </li>
+          <li class="d-flex align-items-start gap-2">
+            <i class="bi bi-check2-circle text-success fs-5 mt-1"></i>
+            <span><strong>Explainable Feedback:</strong> Always shows WHY you matched and what skills to learn next.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Opportunities Carousel/Grid -->
+{% if featured_opportunities %}
+<section class="container-xl my-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold text-navy mb-1">Featured Active Opportunities</h3>
+      <p class="text-muted small mb-0">Explore hand-verified internships, research programs, and hackathons</p>
+    </div>
+    <a href="{% url 'opportunities:list' %}" class="btn btn-outline-teal btn-sm">View All ({{ total_opportunities }})</a>
+  </div>
+
+  <div class="row g-4">
+    {% for opp in featured_opportunities %}
+      <div class="col-md-4">
+        <div class="card card-custom card-hover-elevate h-100 p-4 d-flex flex-column">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge bg-teal-soft text-teal-primary fw-semibold">{{ opp.opportunity_type }}</span>
+            <span class="badge bg-light text-secondary border">{{ opp.mode }}</span>
+          </div>
+          <h5 class="fw-bold mb-1 text-navy">{{ opp.title }}</h5>
+          <p class="text-muted small mb-2"><i class="bi bi-building me-1"></i> {{ opp.organization }}</p>
+          <p class="text-secondary small flex-grow-1">{{ opp.description|truncatewords:18 }}</p>
+
+          <div class="mb-3">
+            <div class="text-muted small mb-1">Required Skills:</div>
+            <div class="d-flex flex-wrap gap-1">
+              {% for s in opp.required_skills.all|slice:":4" %}
+                <span class="skill-tag">{{ s.name }}</span>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto small">
+            <span class="text-muted"><i class="bi bi-calendar3 me-1"></i> {{ opp.deadline|date:"d M Y" }}</span>
+            <a href="{% url 'opportunities:detail' opp.pk %}" class="btn btn-navy btn-sm px-3">View Details</a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- CTA Section -->
+<section class="container-xl my-5 py-4">
+  <div class="p-5 rounded-4 bg-navy text-white text-center position-relative overflow-hidden" style="background: linear-gradient(135deg, var(--primary-navy), var(--secondary-navy));">
+    <h2 class="fw-bold mb-3">Ready to find your high-match opportunities?</h2>
+    <p class="text-white-50 mx-auto mb-4" style="max-width: 580px;">
+      Create your profile in 60 seconds, input your skills, and let our deterministic engine compute personalized matches with full transparency.
+    </p>
+    <a href="{% url 'accounts:register' %}" class="btn btn-primary-teal btn-lg px-4 py-3">
+      Create Student Profile & Find Matches
+    </a>
+  </div>
+</section>
+{% endblock %}

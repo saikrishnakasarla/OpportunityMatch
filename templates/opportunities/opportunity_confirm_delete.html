@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirm Deletion — OpportunityMatch{% endblock %}
+
+{% block content %}
+<div class="container-xl my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card card-custom p-4 p-md-5 text-center">
+        <i class="bi bi-exclamation-triangle-fill text-danger fs-1 mb-3"></i>
+        <h3 class="fw-bold text-navy mb-2">Delete Opportunity</h3>
+        <p class="text-secondary mb-4">
+          Are you sure you want to delete <strong>"{{ opportunity.title }}"</strong> from {{ opportunity.organization }}?
+          This action cannot be undone and will remove all student match results associated with this opportunity.
+        </p>
+        <form method="post">
+          {% csrf_token %}
+          <div class="d-flex justify-content-center gap-2">
+            <a href="{% url 'dashboard:admin_dashboard' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+            <button type="submit" class="btn btn-danger px-4">Yes, Delete Opportunity</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Registration — OpportunityMatch{% endblock %}
+
+{% block content %}
+<div class="container-xl my-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+      <div class="card card-custom p-4 p-md-5 shadow-sm border-0">
+        <div class="text-center mb-4">
+          <div class="brand-logo-icon mx-auto mb-3" style="width: 48px; height: 48px; font-size: 1.4rem;">
+            <i class="bi bi-mortarboard-fill"></i>
+          </div>
+          <h3 class="fw-bold text-navy">Student Registration</h3>
+          <p class="text-muted small">Create your profile to unlock automated eligibility checks and personalized opportunity recommendations.</p>
+        </div>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger p-2 small mb-3">
+              {{ form.non_field_errors|join:", " }}
+            </div>
+          {% endif %}
+
+          <h6 class="text-teal fw-bold text-uppercase small mb-3 letter-spacing-1">1. Personal & Login Details</h6>
+          <div class="row g-3 mb-4">
+            <div class="col-sm-6">
+              <label class="form-label small fw-semibold text-secondary">First Name *</label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label small fw-semibold text-secondary">Last Name *</label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label small fw-semibold text-secondary">Username *</label>
+              {{ form.username }}
+              {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label small fw-semibold text-secondary">Email Address *</label>
+              {{ form.email }}
+              {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label small fw-semibold text-secondary">Password *</label>
+              {{ form.password }}
+              {% if form.password.errors %}<div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label small fw-semibold text-secondary">Confirm Password *</label>
+              {{ form.confirm_password }}
+              {% if form.confirm_password.errors %}<div class="text-danger small mt-1">{{ form.confirm_password.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <h6 class="text-teal fw-bold text-uppercase small mb-3 letter-spacing-1">2. Academic Information (For Eligibility Gate)</h6>
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <label class="form-label small fw-semibold text-secondary">College / University Name</label>
+              {{ form.college }}
+              {% if form.college.errors %}<div class="text-danger small mt-1">{{ form.college.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label small fw-semibold text-secondary">Branch / Major</label>
+              {{ form.branch }}
+              {% if form.branch.errors %}<div class="text-danger small mt-1">{{ form.branch.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-sm-3">
+              <label class="form-label small fw-semibold text-secondary">Year of Study</label>
+              {{ form.year }}
+              {% if form.year.errors %}<div class="text-danger small mt-1">{{ form.year.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-sm-3">
+              <label class="form-label small fw-semibold text-secondary">Current CGPA (out of 10)</label>
+              {{ form.cgpa }}
+              {% if form.cgpa.errors %}<div class="text-danger small mt-1">{{ form.cgpa.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="p-3 bg-light rounded-3 mb-4 small text-muted">
+            <i class="bi bi-shield-check text-success me-1"></i>
+            Your academic details are used solely to determine eligibility for opportunities without human coordinators.
+          </div>
+
+          <button type="submit" class="btn btn-primary-teal w-100 py-2 fs-6 fw-bold">
+            Create Profile & Find My Opportunities
+          </button>
+        </form>
+
+        <div class="text-center mt-4 text-muted small">
+          Already registered? <a href="{% url 'accounts:login' %}" class="text-teal fw-semibold">Sign in here</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

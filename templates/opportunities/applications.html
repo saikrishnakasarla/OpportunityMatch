@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Application Tracking — OpportunityMatch{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold text-navy mb-1">Application Tracking</h2>
+      <p class="text-muted small mb-0">Track the progress of your submitted applications and interview stages.</p>
+    </div>
+    <span class="badge bg-primary fs-6">{{ applications|length }} Tracked</span>
+  </div>
+
+  <div class="card card-custom p-4 mb-4">
+    <div class="p-3 bg-light rounded-3 border mb-3 small text-muted">
+      <i class="bi bi-info-circle me-1 text-teal"></i>
+      This tracker helps you stay organized. It reflects your personal updates and does not auto-fetch external employer statuses unless direct webhooks exist.
+    </div>
+
+    {% if applications %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light small text-secondary">
+            <tr>
+              <th>Opportunity</th>
+              <th>Organization</th>
+              <th>Date Applied</th>
+              <th>Status</th>
+              <th>Notes</th>
+              <th class="text-end">Update</th>
+            </tr>
+          </thead>
+          <tbody class="small">
+            {% for app in applications %}
+              <tr>
+                <td>
+                  <a href="{% url 'opportunities:detail' app.opportunity.pk %}" class="fw-bold text-navy text-decoration-none">
+                    {{ app.opportunity.title }}
+                  </a>
+                  <div class="text-muted" style="font-size: 0.725rem;">{{ app.opportunity.opportunity_type }}</div>
+                </td>
+                <td>{{ app.opportunity.organization }}</td>
+                <td>{{ app.applied_at|date:"d M Y" }}</td>
+                <td>
+                  <span class="badge {% if app.status == 'Selected' %}bg-success{% elif app.status == 'Under Review' %}bg-warning text-dark{% elif app.status == 'Rejected' %}bg-danger{% elif app.status == 'Completed' %}bg-info text-dark{% else %}bg-primary{% endif %}">
+                    {{ app.status }}
+                  </span>
+                </td>
+                <td class="text-muted" style="max-width: 200px;">
+                  {{ app.notes|default:"No notes added."|truncatechars:35 }}
+                </td>
+                <td class="text-end">
+                  <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ app.pk }}">
+                    <i class="bi bi-pencil me-1"></i> Update Status
+                  </button>
+                </td>
+              </tr>
+
+              <!-- Modal to update application status -->
+              <div class="modal fade" id="editModal{{ app.pk }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content card-custom">
+                    <div class="modal-header border-0 pb-0">
+                      <h5 class="modal-title fw-bold text-navy">Update {{ app.opportunity.title }}</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="post" action="{% url 'opportunities:update_application' app.pk %}">
+                      {% csrf_token %}
+                      <div class="modal-body">
+                        <div class="mb-3">
+                          <label class="form-label small fw-semibold text-secondary">Status</label>
+                          <select name="status" class="form-select form-select-sm">
+                            {% for val, label in status_choices %}
+                              <option value="{{ val }}" {% if app.status == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label small fw-semibold text-secondary">Notes / Application Reference</label>
+                          <textarea name="notes" class="form-control form-control-sm" rows="3">{{ app.notes }}</textarea>
+                        </div>
+                      </div>
+                      <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary-teal btn-sm">Save Update</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-5 text-center text-muted">
+        <i class="bi bi-send fs-1 mb-2 d-block"></i>
+        <h5 class="fw-bold">No applications tracked yet</h5>
+        <p class="small">When you apply for an opportunity, record it to keep track of your timeline and interview status.</p>
+        <a href="{% url 'opportunities:list' %}" class="btn btn-primary-teal btn-sm mx-auto">Browse Opportunities</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

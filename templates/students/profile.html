@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Profile — OpportunityMatch{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+  <!-- Profile Header -->
+  <div class="card card-custom p-4 p-md-5 mb-4">
+    <div class="row align-items-center g-4">
+      <div class="col-md-8">
+        <div class="d-flex align-items-center gap-3">
+          <div class="bg-teal text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-2" style="width: 70px; height: 70px; background-color: var(--teal-primary);">
+            {{ user.first_name|first|default:user.username|first|upper }}
+          </div>
+          <div>
+            <h3 class="fw-bold text-navy mb-1">{{ profile.full_name }}</h3>
+            <p class="text-muted small mb-1">
+              <i class="bi bi-mortarboard me-1"></i> {{ profile.college|default:"University Unspecified" }} &bull;
+              {{ profile.branch.name|default:"Branch Unspecified" }} &bull;
+              {{ profile.year.name|default:"Year Unspecified" }}
+            </p>
+            <span class="badge bg-light text-secondary border">CGPA: {{ profile.cgpa }} / 10</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <a href="{% url 'students:profile_edit' %}" class="btn btn-outline-teal btn-sm px-3">
+          <i class="bi bi-pencil-square me-1"></i> Edit Academic & Preference Details
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Academic & Preferences -->
+    <div class="col-lg-5">
+      <!-- Profile Overview Card -->
+      <div class="card card-custom p-4 mb-4">
+        <h5 class="fw-bold text-navy mb-3"><i class="bi bi-person-lines-fill me-2 text-teal"></i> Academic Profile</h5>
+        <div class="small d-flex flex-column gap-2 text-secondary">
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Full Name:</span>
+            <strong>{{ profile.full_name }}</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Username:</span>
+            <strong>{{ user.username }}</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Email:</span>
+            <strong>{{ user.email }}</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">College:</span>
+            <strong>{{ profile.college|default:"Not specified" }}</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Branch:</span>
+            <strong>{{ profile.branch.name|default:"Not specified" }}</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Year:</span>
+            <strong>{{ profile.year.name|default:"Not specified" }}</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">CGPA:</span>
+            <strong>{{ profile.cgpa }} / 10</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Phone:</span>
+            <strong>{{ profile.phone|default:"Not specified" }}</strong>
+          </div>
+        </div>
+
+        {% if profile.bio %}
+          <div class="mt-3 pt-3 border-top">
+            <div class="small fw-semibold text-secondary mb-1">Bio / Career Objective:</div>
+            <p class="small text-muted mb-0">{{ profile.bio }}</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Opportunity Preferences Card -->
+      <div class="card card-custom p-4 mb-4">
+        <h5 class="fw-bold text-navy mb-3"><i class="bi bi-sliders me-2 text-primary"></i> Opportunity Preferences</h5>
+        <div class="small d-flex flex-column gap-2 text-secondary">
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Preferred Work Mode:</span>
+            <strong>{{ profile.preferred_mode }}</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Preferred Opportunity Type:</span>
+            <strong>{{ profile.preferred_type }}</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Preferred Duration:</span>
+            <strong>{{ profile.preferred_duration }}</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Preferred Location:</span>
+            <strong>{{ profile.preferred_location|default:"Any / Flexible" }}</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1">
+            <span class="text-muted">Availability Status:</span>
+            <strong>{{ profile.availability }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Technical Interests Card -->
+      <div class="card card-custom p-4">
+        <h5 class="fw-bold text-navy mb-3"><i class="bi bi-lightbulb me-2 text-warning"></i> Technical Interests</h5>
+        <div class="d-flex flex-wrap gap-1">
+          {% for interest in user_interests %}
+            <span class="badge bg-light text-navy border py-2 px-3 small">{{ interest.name }}</span>
+          {% empty %}
+            <p class="text-muted small mb-0">No interests added yet. Click 'Edit Preferences' to select your focus areas.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Skills Management -->
+    <div class="col-lg-7">
+      <div class="card card-custom p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="fw-bold text-navy mb-0"><i class="bi bi-code-slash me-2 text-teal"></i> My Skills & Competencies</h5>
+            <small class="text-muted">Skills used by the deterministic matching engine</small>
+          </div>
+          <span class="badge bg-teal-soft text-teal-primary fs-6">{{ student_skills.count }} Skills</span>
+        </div>
+
+        <!-- Add Skill Form -->
+        <div class="p-3 bg-light rounded-3 border mb-4">
+          <h6 class="fw-bold text-navy small mb-2">Add or Update Skill:</h6>
+          <form method="post" action="{% url 'students:add_skill' %}" class="row g-2 align-items-end">
+            {% csrf_token %}
+            <div class="col-md-6">
+              <label class="form-label small text-secondary mb-1">Select Skill</label>
+              {{ skill_form.skill }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small text-secondary mb-1">Proficiency Level</label>
+              {{ skill_form.skill_level }}
+            </div>
+            <div class="col-md-2">
+              <button type="submit" class="btn btn-primary-teal btn-sm w-100 py-2">
+                <i class="bi bi-plus-lg"></i> Add
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Skills List -->
+        {% if student_skills %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light small text-secondary">
+                <tr>
+                  <th>Skill Name</th>
+                  <th>Category</th>
+                  <th>Proficiency</th>
+                  <th class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody class="small">
+                {% for ss in student_skills %}
+                  <tr>
+                    <td><strong>{{ ss.skill.name }}</strong></td>
+                    <td class="text-muted">{{ ss.skill.category }}</td>
+                    <td>
+                      <span class="badge {% if ss.skill_level == 'Expert' %}bg-success{% elif ss.skill_level == 'Advanced' %}bg-primary{% elif ss.skill_level == 'Intermediate' %}bg-teal text-white{% else %}bg-secondary{% endif %}" style="{% if ss.skill_level == 'Intermediate' %}background-color: var(--teal-primary);{% endif %}">
+                        {{ ss.skill_level }}
+                      </span>
+                    </td>
+                    <td class="text-end">
+                      <form method="post" action="{% url 'students:delete_skill' ss.skill.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm p-1 px-2" title="Remove skill">
+                          <i class="bi bi-x-lg"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="p-4 text-center text-muted">
+            <i class="bi bi-tools fs-1 mb-2 d-block"></i>
+            <p class="small mb-0">You haven't added any skills yet. Select skills from the catalog above to enable accurate opportunity matching.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
